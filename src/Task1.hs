@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module Task1 where
@@ -11,14 +12,14 @@ import Prelude hiding (foldl, foldr)
 
 -- | Binary tree
 data Tree a = Leaf | Branch a (Tree a) (Tree a)
-  deriving Show
+  deriving (Show)
 
 -- | Forest (i.e. list of 'Tree's)
 type Forest a = [Tree a]
 
 -- | Tree traversal order
 data Order = PreOrder | InOrder | PostOrder
-  deriving Show
+  deriving (Show)
 
 -- * Function definitions
 
@@ -32,12 +33,23 @@ data Order = PreOrder | InOrder | PostOrder
 -- ".A.B."
 -- >>> torder PostOrder (Just '.') (Branch 'A' Leaf (Branch 'B' Leaf Leaf))
 -- "...BA"
---
-torder :: Order    -- ^ Order of resulting traversal
-       -> Maybe a  -- ^ Optional leaf value
-       -> Tree a   -- ^ Tree to traverse
-       -> [a]      -- ^ List of values in specified order
-torder = error "TODO: define torder"
+torder ::
+  -- | Order of resulting traversal
+  Order ->
+  -- | Optional leaf value
+  Maybe a ->
+  -- | Tree to traverse
+  Tree a ->
+  -- | List of values in specified order
+  [a]
+torder ord opt tree = case tree of
+  Leaf -> maybeToList opt
+  Branch a t1 t2 -> f ord a t1 t2
+  where
+    toOrder = torder ord opt
+    f PreOrder a t1 t2 = [a] ++ toOrder t1 ++ toOrder t2
+    f InOrder a t1 t2 = toOrder t1 ++ [a] ++ toOrder t2
+    f PostOrder a t1 t2 = toOrder t1 ++ toOrder t2 ++ [a]
 
 -- | Returns values of given 'Forest' separated by optional separator
 -- where each 'Tree' is traversed in specified 'Order' with optional leaf value
@@ -50,11 +62,35 @@ torder = error "TODO: define torder"
 -- ".|.C.|.A.B."
 -- >>> forder PostOrder (Just '|') (Just '.') [Leaf, Branch 'C' Leaf Leaf, Branch 'A' Leaf (Branch 'B' Leaf Leaf)]
 -- ".|..C|...BA"
---
-forder :: Order     -- ^ Order of tree traversal
-       -> Maybe a   -- ^ Optional separator between resulting tree orders
-       -> Maybe a   -- ^ Optional leaf value
-       -> Forest a  -- ^ List of trees to traverse
-       -> [a]       -- ^ List of values in specified tree order
-forder = error "TODO: define forder"
+forder ::
+  -- | Order of tree traversal
+  Order ->
+  -- | Optional separator between resulting tree orders
+  Maybe a ->
+  -- | Optional leaf value
+  Maybe a ->
+  -- | List of trees to traverse
+  Forest a ->
+  -- | List of values in specified tree order
+  [a]
+forder ord optF optT = foldr lambda []
+  where
+    toOrder = torder ord optT
+    lambda tree [] = toOrder tree
+    lambda tree acc = toOrder tree ++ maybeToList optF ++ acc
 
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr f start ys =
+  let go _ acc [] = acc
+      go fn acc (x : xs) = fn x (go fn acc xs)
+   in go f start ys
+
+foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl f start ys =
+  let go _ acc [] = acc
+      go fn acc (x : xs) = go fn (fn acc x) xs
+   in go f start ys
+
+maybeToList :: Maybe a -> [a]
+maybeToList (Just x) = [x]
+maybeToList Nothing = []
