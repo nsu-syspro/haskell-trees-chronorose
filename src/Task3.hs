@@ -8,7 +8,7 @@ module Task3 where
 -- that are not supposed to be used in this assignment
 
 import Task1 (Tree (..))
-import Task2 (Cmp, Ordering (..), bstToList, listToBST, tdelete, tinsert, tlookup)
+import Task2 (Cmp, bstToList, compare, listToBST, tdelete, tinsert, tlookup)
 import Prelude hiding (Ordering (..), compare, foldl, foldr)
 
 -- * Type definitions
@@ -17,10 +17,7 @@ import Prelude hiding (Ordering (..), compare, foldl, foldr)
 type Map k v = Tree (k, v)
 
 compareKey :: (Ord k) => Cmp (k, v)
-compareKey (k1, _) (k2, _)
-  | k1 > k2 = GT
-  | k1 < k2 = LT
-  | otherwise = EQ
+compareKey (k1, _) (k2, _) = compare k1 k2
 
 -- * Function definitions
 
